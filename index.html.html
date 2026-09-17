@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>達摩一掌經・命盤排盤系統</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --sub: #64748b;
+      --border: #cbd5e1;
+      --primary: #0284c7;
+      --cw: #16a34a;
+      --ccw: #dc2626;
+      --ming-th: #bae6fd;
+      --ming-text: #0369a1;
+      --ming-char: #e11d48;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 680px;
+      width: 100%;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    h1 {
+      font-size: 20px;
+      text-align: center;
+      margin: 0 0 16px 0;
+      color: #0f172a;
+    }
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 4px;
+    }
+    input, select, button {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+    }
+    button.calc-btn {
+      grid-column: 1 / -1;
+      background: #0f172a;
+      color: #ffffff;
+      font-weight: 700;
+      border: none;
+      padding: 12px;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 15px;
+      margin-top: 6px;
+    }
+    button.calc-btn:hover {
+      background: #1e293b;
+    }
+    .info-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .tag {
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 12px;
+      display: inline-block;
+    }
+    .tag-cw { background: var(--cw); }
+    .tag-ccw { background: var(--ccw); }
+    .dst-alert {
+      color: #b45309;
+      font-weight: bold;
+      background: #fef3c7;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .slide-table-wrap {
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+    table.slide-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      border: 2px solid #334155;
+      background: #ffffff;
+    }
+    table.slide-table th {
+      border: 1px solid #94a3b8;
+      background: #e2e8f0;
+      padding: 8px 2px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      width: 20%;
+    }
+    table.slide-table th.ming-th {
+      background: var(--ming-th);
+      color: var(--ming-text);
+    }
+    table.slide-table td {
+      border: 1px solid #94a3b8;
+      padding: 12px 2px;
+      background: #ffffff;
+    }
+    .slot-char {
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1;
+      color: #0369a1;
+    }
+    .slot-char.ming-char {
+      color: var(--ming-char);
+    }
+    .slot-sub {
+      font-size: 11px;
+      color: var(--sub);
+      margin-top: 4px;
+      font-weight: 600;
+    }
+    .palm-wrap {
+      max-width: 440px;
+      margin: 0 auto;
+    }
+    .palm-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 72px);
+      gap: 6px;
+    }
+    .palm-cell {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 4px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .palm-cell.center-core {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .palm-cell.highlight {
+      background: #f0f9ff;
+      border: 2px solid #0284c7;
+    }
+    .cell-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #64748b;
+    }
+    .cell-star {
+      font-size: 18px;
+      font-weight: 900;
+      text-align: center;
+      color: #0f172a;
+    }
+    .cell-badges {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--ming-char);
+      text-align: center;
+      min-height: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>達摩一掌經・命盤排盤系統</h1>
+
+  <div class="input-grid">
+    <div class="field">
+      <label>性別</label>
+      <select id="gender">
+        <option value="1">男 (+)</option>
+        <option value="-1" selected>女 (−)</option>
+      </select>
+    </div>
+
+    <div class="field" style="grid-column: span 2;">
+      <label>國曆出生年月日</label>
+      <input type="date" id="solarDate" value="1979-09-22">
+    </div>
+
+    <div class="field">
+      <label>出生時間</label>
+      <input type="time" id="solarTime" value="10:10">
+    </div>
+
+    <div class="field" style="grid-column: 1 / -1;">
+      <label>雙胞胎狀況</label>
+      <select id="twin">
+        <option value="none">單胎 / 龍鳳胎 (正常排盤)</option>
+        <option value="first">同性雙胞胎・先出生 (原排法)</option>
+        <option value="second">同性雙胞胎・晚出生 (順逆反轉)</option>
+      </select>
+    </div>
+
+    <button type="button" class="calc-btn" onclick="runCalc()">立即自動排盤</button>
+  </div>
+
+  <div id="resultBox">
+    <div class="info-box" id="infoBox"></div>
+
+    <div class="slide-table-wrap">
+      <table class="slide-table">
+        <thead>
+          <tr>
+            <th>第一宮</th>
+            <th>第二宮</th>
+            <th>第三宮</th>
+            <th>第四宮</th>
+            <th class="ming-th">命宮</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="slot-char" id="t1Char">-</div>
+              <div class="slot-sub" id="t1Zhi">-</div>
+            </td>
+            <td>
+              <div class="slot-char" id="t2Char">-</div>
+              <div class="slot-sub" id="t2Zhi">-</div>
+            </td>
+            <td>
+              <div class="slot-char" id="t3Char">-</div>
+              <div class="slot-sub" id="t3Zhi">-</div>
+            </td>
+            <td>
+              <div class="slot-char" id="t4Char">-</div>
+              <div class="slot-sub" id="t4Zhi">-</div>
+            </td>
+            <td>
+              <div class="slot-char ming-char" id="tMingChar">-</div>
+              <div class="slot-sub" id="tMingZhi">-</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="palm-wrap">
+      <div class="palm-grid" id="palmGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 台灣歷史日光節約時間 (1945 - 1979)
+  var TAIWAN_DST = [
+    ["1945-05-01 00:00", "1945-09-20 24:00"],
+    ["1946-05-15 00:00", "1946-09-30 24:00"],
+    ["1947-04-15 00:00", "1947-10-31 24:00"],
+    ["1948-05-01 00:00", "1948-09-30 24:00"],
+    ["1949-05-01 00:00", "1949-10-31 24:00"],
+    ["1950-05-01 00:00", "1950-09-30 24:00"],
+    ["1951-05-01 00:00", "1951-09-30 24:00"],
+    ["1952-05-01 00:00", "1952-10-31 24:00"],
+    ["1953-04-01 00:00", "1953-10-31 24:00"],
+    ["1954-04-01 00:00", "1954-10-31 24:00"],
+    ["1955-04-01 00:00", "1955-10-31 24:00"],
+    ["1956-04-01 00:00", "1956-10-31 24:00"],
+    ["1957-04-01 00:00", "1957-10-31 24:00"],
+    ["1958-04-01 00:00", "1958-10-31 24:00"],
+    ["1959-04-01 00:00", "1959-10-31 24:00"],
+    ["1960-06-01 00:00", "1960-09-30 24:00"],
+    ["1961-06-01 00:00", "1961-09-30 24:00"],
+    ["1974-04-01 00:00", "1974-09-30 24:00"],
+    ["1975-04-01 00:00", "1975-09-30 24:00"],
+    ["1979-07-01 00:00", "1979-09-30 24:00"]
+  ];
+
+  function checkTaiwanDst(dateStr, timeStr) {
+    try {
+      var targetDt = new Date(dateStr + "T" + timeStr + ":00");
+      for (var i = 0; i < TAIWAN_DST.length; i++) {
+        var s = TAIWAN_DST[i][0].split(" ");
+        var e = TAIWAN_DST[i][1].split(" ");
+        var dtStart = new Date(s[0] + "T" + s[1]);
+        var dtEnd = (e[1] === "24:00") ? new Date(e[0] + "T23:59:59.999") : new Date(e[0] + "T" + e[1]);
+        if (targetDt >= dtStart && targetDt <= dtEnd) return true;
+      }
+    } catch(err) {}
+    return false;
+  }
+
+  var STARS = [
+    { zhi: "子", animal: "鼠", polarity: 1,  name: "貴", realm: "佛道" },
+    { zhi: "丑", animal: "牛", polarity: -1, name: "厄", realm: "鬼道" },
+    { zhi: "寅", animal: "虎", polarity: 1,  name: "權", realm: "人道" },
+    { zhi: "卯", animal: "兔", polarity: -1, name: "破", realm: "鬼道" },
+    { zhi: "辰", animal: "龍", polarity: 1,  name: "奸", realm: "修羅" },
+    { zhi: "巳", animal: "蛇", polarity: -1, name: "文", realm: "佛道" },
+    { zhi: "午", animal: "馬", polarity: 1,  name: "福", realm: "仙道" },
+    { zhi: "未", animal: "羊", polarity: -1, name: "驛", realm: "佛道" },
+    { zhi: "申", animal: "猴", polarity: 1,  name: "孤", realm: "畜道" },
+    { zhi: "酉", animal: "雞", polarity: -1, name: "刃", realm: "仙道" },
+    { zhi: "戌", animal: "狗", polarity: 1,  name: "藝", realm: "修羅" },
+    { zhi: "亥", animal: "豬", polarity: -1, name: "壽", realm: "人道" }
+  ];
+
+  var PALM_LAYOUT = [
+    [5, 6, 7, 8],
+    [4, null, null, 9],
+    [3, null, null, 10],
+    [2, 1, 0, 11]
+  ];
+
+  // 100% 兼容 Chrome / Safari 的解析器
+  function parseLunar(y, m, d) {
+    var dt = new Date(y, m - 1, d, 12, 0, 0);
+    var formatter = new Intl.DateTimeFormat('zh-Hans-u-ca-chinese', {
+      month: 'numeric',
+      day: 'numeric'
+    });
+    var str = formatter.format(dt); // 例如: "8月2" 或 "閏6月5"
+    var isLeap = str.indexOf("閏") !== -1 || str.indexOf("闰") !== -1;
+    var digits = str.match(/\d+/g);
+    var lMonth = digits && digits[0] ? parseInt(digits[0], 10) : m;
+    var lDay = digits && digits[1] ? parseInt(digits[1], 10) : d;
+
+    // 農曆生肖年計算
+    var approxYear = y;
+    if (m === 1 || (m === 2 && lMonth >= 11)) {
+      if (lMonth >= 11) approxYear = y - 1;
+    }
+    var zIdx = (approxYear - 4) % 12;
+    if (zIdx < 0) zIdx += 12;
+
+    return {
+      year: approxYear,
+      month: lMonth,
+      day: lDay,
+      isLeap: isLeap,
+      zodiacIdx: zIdx
+    };
+  }
+
+  function stepMove(start, count, dir) {
+    var target = (start + dir * (count - 1)) % 12;
+    if (target < 0) target += 12;
+    return target;
+  }
+
+  function runCalc() {
+    var sDateInput = document.getElementById("solarDate");
+    var sTimeInput = document.getElementById("solarTime");
+    if (!sDateInput || !sDateInput.value) return;
+
+    var sDate = sDateInput.value;
+    var sTime = (sTimeInput && sTimeInput.value) ? sTimeInput.value : "10:10";
+
+    var dParts = sDate.split("-");
+    var y = parseInt(dParts[0], 10);
+    var m = parseInt(dParts[1], 10);
+    var d = parseInt(dParts[2], 10);
+
+    var tParts = sTime.split(":");
+    var h = parseInt(tParts[0], 10);
+    var min = parseInt(tParts[1], 10);
+
+    var gender = parseInt(document.getElementById("gender").value, 10);
+    var twin = document.getElementById("twin").value;
+
+    // 1. 日光節約時間自動判定
+    var isDst = checkTaiwanDst(sDate, sTime);
+    var dstNote = "";
+    if (isDst) {
+      var origDt = new Date(sDate + "T" + sTime + ":00");
+      var adjDt = new Date(origDt.getTime() - 3600000);
+      y = adjDt.getFullYear();
+      m = adjDt.getMonth() + 1;
+      d = adjDt.getDate();
+      h = adjDt.getHours();
+      min = adjDt.getMinutes();
+      dstNote = ' <span class="dst-alert">⚡ 判定符合日光節約時間：扣除 1 小時 (換算為 ' + y + '-' + ('0' + m).slice(-2) + '-' + ('0' + d).slice(-2) + ' ' + ('0' + h).slice(-2) + ':' + ('0' + min).slice(-2) + ')</span>';
+    }
+
+    // 2. 精確國曆轉農曆
+    var lunar = parseLunar(y, m, d);
+    var zInfo = STARS[lunar.zodiacIdx];
+
+    // 3. 順逆方向判定
+    var dir = (zInfo.polarity * gender > 0) ? 1 : -1;
+    var twinNote = "";
+    if (twin === "second") {
+      dir = -dir;
+      twinNote = "【同性雙胞胎・晚出生：順逆反轉】";
+    } else if (twin === "first") {
+      twinNote = "【同性雙胞胎・先出生】";
+    }
+
+    // 4. 閏月步數規則
+    var monthStep = lunar.month;
+    var leapNote = "";
+    if (lunar.isLeap) {
+      if (lunar.day > 15) {
+        monthStep = lunar.month + 1;
+        leapNote = " (閏月>15日，月步數計為 " + monthStep + ")";
+      } else {
+        leapNote = " (閏月≤15日，月步數維持 " + monthStep + ")";
+      }
+    }
+
+    // 5. 時辰步數與早晚子時
+    var hourStep = 1;
+    var isLateZi = false;
+    var hourName = "";
+
+    if (h === 23) {
+      hourStep = 1;
+      isLateZi = true;
+      hourName = "晚子時 (23-24)";
+    } else if (h === 0) {
+      hourStep = 1;
+      isLateZi = false;
+      hourName = "早子時 (00-01)";
+    } else {
+      var hNames = [
+        "丑時 (01-03)", "寅時 (03-05)", "卯時 (05-07)", "辰時 (07-09)",
+        "巳時 (09-11)", "午時 (11-13)", "未時 (13-15)", "申時 (15-17)",
+        "酉時 (17-19)", "戌時 (19-21)", "亥時 (21-23)"
+      ];
+      var idx = Math.floor((h - 1) / 2);
+      hourStep = idx + 2;
+      hourName = hNames[idx];
+    }
+
+    // 6. 排四宮與命宮
+    var p1 = lunar.zodiacIdx;
+    var p2 = stepMove(p1, monthStep, dir);
+    var p3 = stepMove(p2, lunar.day, dir);
+    var p4 = stepMove(p3, hourStep, dir);
+
+    var pMing = isLateZi ? stepMove(p4, 2, dir) : stepMove(p3, 4, dir);
+    var mingText = isLateZi ? "晚子時（第四宮起走 2 步）" : "一般時辰（第三宮起走 4 步）";
+
+    var dirBadge = dir === 1 
+      ? '<span class="tag tag-cw">順時鐘排盤</span>' 
+      : '<span class="tag tag-ccw">逆時鐘排盤</span>';
+
+    document.getElementById("infoBox").innerHTML = 
+      '<b>國曆輸入：</b>' + sDate + ' ' + sTime + dstNote + '<br>' +
+      '<b>換算農曆：</b>' + lunar.year + ' 年 (生肖屬' + zInfo.animal + ') ' + (lunar.isLeap ? '閏' : '') + lunar.month + '月' + lunar.day + '日 (' + hourName + ')<br>' +
+      '<b>排盤方向：</b>' + (gender === 1 ? '男' : '女') + '命 × ' + zInfo.animal + '年 ➔ ' + dirBadge + ' ' + twinNote + '<br>' +
+      '<b>關鍵步數：</b>月 ' + monthStep + ' 步' + leapNote + '、日 ' + lunar.day + ' 步、時 ' + hourStep + ' 步 ｜ <b>命宮：</b>' + mingText;
+
+    var setSlot = function(pre, targetIdx) {
+      var item = STARS[targetIdx];
+      document.getElementById(pre + "Char").textContent = item.name;
+      document.getElementById(pre + "Zhi").textContent = item.zhi + " (" + item.realm + ")";
+    };
+    setSlot("t1", p1);
+    setSlot("t2", p2);
+    setSlot("t3", p3);
+    setSlot("t4", p4);
+    setSlot("tMing", pMing);
+
+    var tagsMap = {};
+    var recordTag = function(tIdx, name) {
+      if (!tagsMap[tIdx]) tagsMap[tIdx] = [];
+      tagsMap[tIdx].push(name);
+    };
+    recordTag(p1, "一宮");
+    recordTag(p2, "二宮");
+    recordTag(p3, "三宮");
+    recordTag(p4, "四宮");
+    recordTag(pMing, "命宮");
+
+    var palm = document.getElementById("palmGrid");
+    palm.innerHTML = "";
+
+    for (var r = 0; r < 4; r++) {
+      for (var c = 0; c < 4; c++) {
+        var curIdx = PALM_LAYOUT[r][c];
+        if (curIdx === null) {
+          if (r === 1 && c === 1) {
+            palm.innerHTML += '<div class="palm-cell center-core" style="grid-column: span 2; grid-row: span 2;">達摩一掌訣</div>';
+          }
+          continue;
+        }
+
+        var starData = STARS[curIdx];
+        var tags = tagsMap[curIdx] || [];
+        var hitClass = tags.length > 0 ? " highlight" : "";
+
+        palm.innerHTML += 
+          '<div class="palm-cell' + hitClass + '">' +
+            '<div class="cell-head">' +
+              '<span>' + starData.zhi + ' (' + starData.animal + ')</span>' +
+              '<span>' + starData.realm + '</span>' +
+            '</div>' +
+            '<div class="cell-star">' + starData.name + '</div>' +
+            '<div class="cell-badges">' + tags.join(" ") + '</div>' +
+          '</div>';
+      }
+    }
+  }
+
+  // 網頁開啟自動執行一次
+  window.onload = runCalc;
+</script>
+
+</body>
+</html>
